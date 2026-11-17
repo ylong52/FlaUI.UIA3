@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<body>
+<form id="survey">
+
+  <div class="qblock" data-question-id="Q1">
+    <p class="qtitle req">1. How old are you? *</p>
+    <label class="opt"><input type="radio" name="age" value="18-24"><span class="txt">18-24</span></label>
+    <label class="opt"><input type="radio" name="age" value="25-34"><span class="txt">25-34</span></label>
+    <label class="opt"><input type="radio" name="age" value="35-44"><span class="txt">35-44</span></label>
+  </div>
+
+  <div class="qblock" data-question-id="Q2">
+    <p class="qtitle req">2. Which country do you currently reside in? *</p>
+    <select name="country">
+      <option value="">Please select…</option>
+      <option value="US">United States</option>
+      <option value="CN">China</option>
+      <option value="DE">Germany</option>
+    </select>
+  </div>
+
+  <div class="qblock" data-question-id="Q3">
+    <p class="qtitle req">3. Name three things you could not live without. *</p>
+    <textarea name="fav_three" placeholder="Please type your answer…"></textarea>
+  </div>
+
+  <div class="qblock" data-question-id="Q4">
+    <p class="qtitle req">4. Which products do you use? (Select all that apply.) *</p>
+    <label class="opt"><input type="checkbox" name="products" value="Pumps"><span class="txt">Pumps</span></label>
+    <label class="opt"><input type="checkbox" name="products" value="Valves"><span class="txt">Valves</span></label>
+    <label class="opt"><input type="checkbox" name="products" value="none"><span class="txt">None of the above</span></label>
+  </div>
+
+  <div class="qblock" data-question-id="Q5">
+    <p class="qtitle req">5. For each application select the technology. *</p>
+    <table class="matrix">
+      <thead>
+        <tr><th>Application</th><th>Concentric</th><th>Double Offset</th></tr>
+      </thead>
+      <tbody>
+        <tr><th>Isolation</th>
+          <td><input type="radio" name="m0" value="C"></td>
+          <td><input type="radio" name="m0" value="D"></td>
+        </tr>
+        <tr><th>Control</th>
+          <td><input type="radio" name="m1" value="C"></td>
+          <td><input type="radio" name="m1" value="D"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="qblock" data-question-id="Q6">
+    <p class="qtitle">6. How important is support? (0 = not important, 100 = extremely important)</p>
+    <input type="range" name="importance" min="0" max="100" step="1" value="50">
+  </div>
+
+  <div class="qblock" data-question-id="Q7">
+    <p class="qtitle req">7. Please rank the factors. *</p>
+    <ul class="rank-list">
+      <li class="rank-item" data-factor="price"><span class="rank-badge">1</span><span class="txt">Price</span></li>
+      <li class="rank-item" data-factor="support"><span class="rank-badge">2</span><span class="txt">Support</span></li>
+      <li class="rank-item" data-factor="delivery"><span class="rank-badge">3</span><span class="txt">Delivery</span></li>
+    </ul>
+  </div>
+
+  <div class="qblock" data-question-id="Q8">
+    <p class="qtitle">8. How many years of experience do you have?</p>
+    <input type="number" name="years" min="0" max="60" step="1">
+  </div>
+
+  <div class="qblock" data-question-id="Q9" data-depends-on="Q4" data-depends-value="Valves">
+    <p class="qtitle">9. Which valve type do you use?</p>
+    <label class="opt"><input type="radio" name="valve_type" value="ball"><span class="txt">Ball</span></label>
+    <label class="opt"><input type="radio" name="valve_type" value="butterfly"><span class="txt">Butterfly</span></label>
+  </div>
+
+  <div class="qblock" data-question-id="Q10">
+    <p class="qtitle"><img src="data:image/png;base64,AAAA" alt=""></p>
+    <label class="opt"><input type="radio" name="gender" value="male"><span class="txt">Male</span></label>
+    <label class="opt"><input type="radio" name="gender" value="female"><span class="txt">Female</span></label>
+    <label class="opt"><input type="radio" name="gender" value="other"><span class="txt">Other</span></label>
+  </div>
+
+  <div class="qblock" data-question-id="Q11">
+    <p class="qtitle">11. Which brand do you associate with?</p>
+    <label class="opt"><input type="radio" name="brand" value="b1"><span class="txt">{{ o }}</span></label>
+    <label class="opt"><input type="radio" name="brand" value="b2"><span class="txt">{{ o }}</span></label>
+  </div>
+
+</form>
+</body>
+</html>

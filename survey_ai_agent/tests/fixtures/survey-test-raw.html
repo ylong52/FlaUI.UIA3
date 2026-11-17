@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Industrial Valve Specification Survey</title>
+<style>
+  :root {
+    --primary:#1d4ed8; --primary-dark:#1e40af; --border:#d7dce3; --bg:#eef1f5;
+    --text:#1f2937; --muted:#6b7280; --err:#dc2626; --ok:#16a34a; --field:#f9fafb;
+  }
+  * { box-sizing:border-box; }
+  [v-cloak] { display:none; }
+  html,body { margin:0; padding:0; background:var(--bg); color:var(--text);
+    font:15px/1.55 -apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif; }
+  .topbar { background:#fff; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10; }
+  .topbar-inner { max-width:820px; margin:0 auto; padding:10px 20px 12px; }
+  .page-label { font-size:12px; color:var(--muted); display:flex; justify-content:space-between; margin-top:6px; }
+  .progress-track { height:6px; background:#e5e7eb; border-radius:99px; overflow:hidden; margin-top:8px; }
+  .progress-fill { height:100%; background:var(--primary); border-radius:99px; transition:width .25s; }
+  main { max-width:820px; margin:0 auto; padding:20px 20px 90px; }
+  .intro { background:#fff; border:1px solid var(--border); border-radius:10px; padding:18px 22px; margin-bottom:14px; }
+  .intro h1 { font-size:19px; margin:0 0 6px; }
+  .intro p { margin:0; color:#374151; font-size:14px; }
+  .card { background:#fff; border:1px solid var(--border); border-radius:10px; padding:6px 24px 22px; min-height:340px; }
+  .step-head { display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #e5e7eb;
+    padding:16px 0 10px; margin-bottom:6px; }
+  .step-head h3 { margin:0; color:var(--primary); font-size:15px; }
+  .step-head .tag { font-size:12px; color:var(--muted); }
+  .qblock { padding:20px 0; border-bottom:1px solid #edf0f4; }
+  .qtitle { font-weight:600; margin:0 0 4px; }
+  .qtitle .num { color:var(--primary); margin-right:6px; }
+  .qsub { color:var(--muted); font-size:13px; margin:0 0 12px; }
+  .req::after { content:" *"; color:var(--err); }
+  .opt { display:flex; align-items:flex-start; gap:9px; padding:9px 12px; margin:6px 0;
+    border:1px solid var(--border); border-radius:8px; background:var(--field); cursor:pointer;
+    transition:border-color .12s, background .12s; }
+  .opt:hover { border-color:#93b4f5; background:#fff; }
+  .opt.sel { border-color:var(--primary); background:#eff6ff; }
+  .opt input { margin-top:3px; accent-color:var(--primary); }
+  .opt .txt { flex:1; min-width:0; }
+  select.text { width:100%; padding:9px 10px; border:1px solid var(--border); border-radius:8px;
+    background:#fff; font-size:14px; }
+  .alloc-row { display:flex; align-items:center; gap:10px; padding:7px 0; }
+  .alloc-row .lbl { flex:1; }
+  .alloc-row input { width:90px; padding:7px 9px; border:1px solid var(--border); border-radius:6px;
+    text-align:right; font-size:14px; }
+  .alloc-total { font-size:13px; margin-top:6px; }
+  .alloc-total.bad { color:var(--err); font-weight:600; }
+  .alloc-total.ok { color:var(--ok); font-weight:600; }
+  textarea { width:100%; min-height:90px; padding:9px 11px; border:1px solid var(--border);
+    border-radius:8px; font:inherit; resize:vertical; }
+  table.matrix { border-collapse:separate; border-spacing:0; width:100%; margin-top:6px;
+    font-size:13px; background:#fff; }
+  table.matrix th, table.matrix td { border:1px solid var(--border); padding:8px 6px; text-align:center; vertical-align:middle; }
+  table.matrix th { background:#f3f6fb; font-weight:600; }
+  table.matrix td.rowh { background:#fafbfc; text-align:left; font-weight:500; min-width:190px; }
+  table.matrix label { display:flex; justify-content:center; cursor:pointer; padding:2px; }
+  table.matrix label input { accent-color:var(--primary); margin:0; }
+  .err-hint { color:var(--err); font-size:13px; margin-top:6px; display:none; }
+  .qblock.invalid .err-hint { display:block; }
+  .nav-row { display:flex; justify-content:space-between; align-items:center; margin-top:22px; gap:10px; }
+  button.btn { border-radius:8px; padding:11px 34px; font-size:15px; cursor:pointer; border:1px solid var(--border);
+    background:#fff; color:var(--text); }
+  button.btn:hover { background:#f3f4f6; }
+  button.btn.primary { background:var(--primary); color:#fff; border-color:var(--primary); }
+  button.btn.primary:hover { background:var(--primary-dark); }
+  button.btn:disabled { opacity:.45; cursor:not-allowed; }
+  .thanks { display:none; background:#fff; border:1px solid var(--border); border-radius:10px;
+    padding:60px 30px; text-align:center; margin-top:30px; }
+  .thanks.show { display:block; }
+  .thanks .t { font-size:22px; font-weight:700; color:var(--ok); margin-bottom:10px; }
+  footer.note { text-align:center; color:#9aa3af; font-size:12px; margin-top:20px; }
+
+  /* ── Q13 拖拽排序 ── */
+  .rank-list { list-style:none; margin:10px 0 0; padding:0; }
+  .rank-item { display:flex; align-items:center; gap:10px; padding:9px 10px; margin:6px 0;
+    border:1px solid var(--border); border-radius:8px; background:var(--field); cursor:grab;
+    user-select:none; -webkit-user-select:none; touch-action:none; }
+  .rank-item.dragging { opacity:.55; border-color:var(--primary); background:#fff; }
+  .rank-item.drop-target { border-color:var(--primary); box-shadow:0 0 0 1px var(--primary) inset; }
+  .rank-grip { color:#9aa3af; font-size:16px; line-height:1; padding:2px 2px; flex:none; }
+  .rank-badge { min-width:26px; height:26px; border-radius:99px; background:var(--primary); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:600; flex:none; }
+  .rank-item .txt { flex:1; }
+  .rank-hint { color:var(--muted); font-size:13px; margin:8px 0 0; }
+
+  /* ── Q14 滑杆 ── */
+  .slider-wrap { padding:12px 6px 4px; }
+  .slider-row { display:flex; align-items:center; gap:12px; }
+  input[type=range].sv { flex:1; width:100%; margin:0; cursor:pointer; -webkit-appearance:none; appearance:none;
+    height:26px; background:transparent; }
+  input[type=range].sv::-webkit-slider-runnable-track { height:6px; border-radius:99px;
+    background:linear-gradient(90deg, var(--primary) 0%, var(--primary) var(--fill,50%), #e0e4ea var(--fill,50%)); }
+  input[type=range].sv::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:20px; height:20px;
+    margin-top:-7px; border-radius:99px; background:#fff; border:2px solid var(--primary);
+    box-shadow:0 1px 4px rgba(0,0,0,.25); }
+  .slider-val { min-width:46px; text-align:center; font-weight:700; color:var(--primary); font-size:17px; flex:none; }
+  .slider-labels { display:flex; justify-content:space-between; color:var(--muted); font-size:12px; margin-top:2px; }
+</style>
+</head>
+<body>
+
+<div id="app" v-cloak>
+  <!-- 顶部进度 -->
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div style="font-weight:700;font-size:15px;">ValveSpec Study — B2B 调研（测试问卷）</div>
+      <div class="progress-track"><div class="progress-fill" :style="{width: progressPct + '%'}"></div></div>
+      <div class="page-label">
+        <span>Step {{ step }} of {{ stepCount }} · {{ answeredCount }}/14 questions answered</span>
+        <span>{{ progressPct }}%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 感谢页 -->
+  <div class="thanks" :class="{show: submitted}">
+    <div class="t">Thank you!</div>
+    <p>Your responses have been recorded.<br/>Thank you for participating in this study.</p>
+    <footer class="note">TEST SURVEY — 自动化测试页面</footer>
+  </div>
+
+  <main v-if="!submitted">
+    <div class="intro" v-if="step === 1">
+      <h1>Industrial Valve Specification &amp; Purchasing Survey</h1>
+      <p>Thank you for agreeing to take part in this short survey. We are interested in how industrial valve
+        users select and purchase butterfly and control valves. Your answers are confidential and will only be
+        reported in aggregate. Please click "Next" to begin.</p>
+    </div>
+
+    <!-- ═══════════ Step 1: 年龄单选 + 国家下拉 + 两道精准填空题（测试用） ═══════════ -->
+    <div class="card" v-if="step === 1">
+      <div class="step-head"><h3>About You</h3><span class="tag">4 questions</span></div>
+      <div class="qblock" :class="{invalid: stepTouched && !ans.age}">
+        <p class="qtitle req"><span class="num">1.</span>How old are you?</p>
+        <label class="opt" v-for="(o, i) in ageOptions" :key="'a'+i" :class="{sel: ans.age === o}">
+          <input type="radio" name="q1" :value="o" v-model="ans.age" />
+          <span class="txt">{{ o }}</span>
+        </label>
+        <p class="err-hint">Please select an answer.</p>
+      </div>
+      <div class="qblock" :class="{invalid: stepTouched && !ans.country}">
+        <p class="qtitle req"><span class="num">2.</span>Which country do you currently reside in?</p>
+        <select class="text" name="q2" v-model="ans.country">
+          <option value="" disabled>Please select…</option>
+          <option v-for="c in countryOptions" :key="c" :value="c">{{ c }}</option>
+        </select>
+        <p class="err-hint">Please select an answer.</p>
+      </div>
+      <div class="qblock" :class="{invalid: stepTouched && !ans.favThree.trim()}">
+        <p class="qtitle req"><span class="num">3.</span>Name three things you could not live without.</p>
+        <textarea name="q3a" v-model="ans.favThree" placeholder="Please type your answer…"></textarea>
+        <p class="err-hint">Please enter a response.</p>
+      </div>
+      <div class="qblock" :class="{invalid: stepTouched && !ans.coffee.trim()}">
+        <p class="qtitle req"><span class="num">4.</span>Describe how to make a really good cup of coffee.</p>
+        <textarea name="q4a" v-model="ans.coffee" placeholder="Please type your answer…"></textarea>
+        <p class="err-hint">Please enter a response.</p>
+      </div>
+      <div class="nav-row">
+        <span></span>
+        <button type="button" class="btn primary" @click="next(1)">Next ›</button>
+      </div>
+    </div>
+
+    <!-- ═══════════ Step 2: 行业 + 部门 ═══════════ -->
+    <div class="card" v-if="step === 2">
+      <div class="step-head"><h3>Your Organization</h3><span class="tag">2 questions</span></div>
+      <div class="qblock" :class="{invalid: stepTouched && !ans.industry}">
+        <p class="qtitle req"><span class="num">5.</span>In which industry do you currently work?</p>
+        <label class="opt" v-for="(o, i) in industryOptions" :key="'i'+i" :class="{sel: ans.industry === o}">
+          <input type="radio" name="q3" :value="o" v-model="ans.industry" />
+          <span class="txt">{{ o }}</span>
+        </label>
+        <p class="err-hint">Please select an answer.</p>
+      </div>
+      <div class="qblock" :class="{invalid: stepTouched && !ans.dept}">
+        <p class="qtitle req"><span class="num">6.</span>Which of the following best describes the department where you work?</p>
+        <label class="opt" v-for="(o, i) in deptOptions" :key="'d'+i" :class="{sel: ans.dept === o}">
+          <input type="radio" name="q4" :value="o" v-model="ans.dept" />
+          <span class="txt">{{ o }}</span>
+        </label>
+        <p class="err-hint">Please select an answer.</p>
+      </div>
+      <div class="nav-row">
+        <button type="button" class="btn" @click="prev">‹ Back</button>
+        <button type="button" class="btn primary" @click="next(2)">Next ›</button>
+      </div>
+    </div>
+
+    <!-- ═══════════ Step 3: 产品 + 角色 ═══════════ -->
+    <div class="card" v-if="step === 3">
+      <div class="step-head"><h3>Products &amp; Your Role</h3><span class="tag">2 questions</span></div>
+      <div class="qblock" :class="{invalid: stepTouched && ans.products.length === 0}">
+        <p class="qtitle req"><span class="num">7.</span>Which of the following products do you work with on a regular basis at your company? (Select all that apply.)</p>
+        <label class="opt" v-for="(o, i) in productOptions" :key="'p'+i" :class="{sel: ans.products.includes(o)}">
+          <input type="checkbox" :checked="ans.products.includes(o)" @change="toggleProduct(o)" />
+          <span class="txt">{{ o }}</span>
+        </label>
+        <p class="err-hint">Please select at least one answer.</p>
+      </div>
+      <div class="qblock" :class="{invalid: stepTouched && !ans.role}">
+        <p class="qtitle req"><span class="num">8.</span>Which of the following best describes your role in specifying and/or purchasing control valves and/or actuators at your company?</p>
+        <label class="opt" v-for="(o, i) in roleOptions" :key="'r'+i" :class="{sel: ans.role === o}">
+          <input type="radio" name="q6" :value="o" v-model="ans.role" />
+          <span class="txt">{{ o }}</span>
+        </label>
+        <p class="err-hint">Please select an answer.</p>
+      </div>
+      <div class="nav-row">
+        <button type="button" class="btn" @click="prev">‹ Back</button>
+        <button type="button" class="btn primary" @click="next(3)">Next ›</button>
+      </div>
+    </div>
+
+    <!-- ═══════════ Step 4: 阀门类型 + 百分比分配 ═══════════ -->
+    <div class="card" v-if="step === 4">
+      <div class="step-head"><h3>Valve Usage</h3><span class="tag">2 questions</span></div>
+      <div class="qblock" :class="{invalid: stepTouched && ans.valves.length === 0}">
+        <p class="qtitle req"><span class="num">9.</span>Which types of valves are used at your company? (Select all that apply.)</p>
+        <label class="opt" v-for="(o, i) in valveOptions" :key="'v'+i" :class="{sel: ans.valves.includes(o)}">
+          <input type="checkbox" :checked="ans.valves.includes(o)" @change="toggleValve(o)" />
+          <span class="txt">{{ o }}</span>
+        </label>
+        <p class="err-hint">Please select at least one answer.</p>
+      </div>
+      <div class="qblock" :class="{invalid: stepTouched && allocTotal !== 100}">
+        <p class="qtitle req"><span class="num">10.</span>For control applications, what percentage of applications require the following shutoff classes? (Allocate 100 total. Do not enter the % symbol.)</p>
+        <div class="alloc-row" v-for="row in allocRows" :key="row">
+          <span class="lbl">{{ row }}</span>
+          <input type="text" inputmode="numeric" :name="'q8-'+row" :placeholder="'0–100'"
+                 :value="alloc[row]" @input="alloc[row] = normNum($event.target.value)" />
+          <span>%</span>
+        </div>
+        <p class="alloc-total" :class="allocTotal === 100 ? 'ok' : 'bad'">Total: {{ allocTotal }} / 100</p>
+        <p class="err-hint">Total must equal 100.</p>
+      </div>
+      <div class="nav-row">
+        <button type="button" class="btn" @click="prev">‹ Back</button>
+        <button type="button" class="btn primary" @click="next(4)">Next ›</button>
+      </div>
+    </div>
+
+    <!-- ═══════════ Step 5: 应用×技术 matrix ═══════════ -->
+    <div class="card" v-if="step === 5">
+      <div class="step-head"><h3>Application Technology</h3><span class="tag">1 question</span></div>
+      <div class="qblock" :class="{invalid: stepTouched && !matrixFull}">
+        <p class="qtitle req"><span class="num">11.</span>For each application below, select the butterfly valve technology that is most commonly specified or preferred.</p>
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th style="text-align:left;">Application</th>
+              <th v-for="t in techColumns" :key="t">{{ t }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, ri) in appRows" :key="row">
+              <td class="rowh">{{ row }}</td>
+              <td v-for="t in techColumns" :key="t">
+                <label><input type="radio" :name="'q9-'+ri" :value="t" v-model="matrix[ri]" /></label>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="err-hint">Please answer all rows.</p>
+      </div>
+      <div class="nav-row">
+        <button type="button" class="btn" @click="prev">‹ Back</button>
+        <button type="button" class="btn primary" @click="next(5)">Next ›</button>
+      </div>
+    </div>
+
+    <!-- ═══════════ Step 6: 品牌联想 matrix ═══════════ -->
+    <div class="card" v-if="step === 6">
+      <div class="step-head"><h3>Brand Perception</h3><span class="tag">1 question</span></div>
+      <div class="qblock" :class="{invalid: stepTouched && !brandFull}">
+        <p class="qtitle req"><span class="num">12.</span>Which brand do you most associate with each of the following for butterfly valves?</p>
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th style="text-align:left;">Attribute</th>
+              <th v-for="b in brandColumns" :key="b">{{ b }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, ri) in brandRows" :key="row">
+              <td class="rowh">{{ row }}</td>
+              <td v-for="b in brandColumns" :key="b">
+                <label><input type="radio" :name="'q10-'+ri" :value="b" v-model="brand[ri]" /></label>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="err-hint">Please answer all rows.</p>
+      </div>
+      <div class="nav-row">
+        <button type="button" class="btn" @click="prev">‹ Back</button>
+        <button type="button" class="btn primary" @click="next(6)">Next ›</button>
+      </div>
+    </div>
+
+    <!-- ═══════════ Step 7: 联合分析 ═══════════ -->
+    <div class="card" v-if="step === 7">
+      <div class="step-head"><h3>Product Choice</h3><span class="tag">1 question</span></div>
+      <div class="qblock" :class="{invalid: stepTouched && !ans.conjoint}">
+        <p class="qtitle req"><span class="num">13.</span>Which option would you choose?
+          <span style="font-weight:400;color:var(--muted);">Note: Price includes valve body, actuator and control package.</span>
+        </p>
+        <label class="opt" v-for="(o, i) in conjointOptions" :key="'c'+i" :class="{sel: ans.conjoint === o}">
+          <input type="radio" name="q11" :value="o" v-model="ans.conjoint" />
+          <span class="txt">{{ o }}</span>
+        </label>
+        <p class="err-hint">Please select an answer.</p>
+      </div>
+      <div class="nav-row">
+        <button type="button" class="btn" @click="prev">‹ Back</button>
+        <button type="button" class="btn primary" @click="next(7)">Next ›</button>
+      </div>
+    </div>
+
+    <!-- ═══════════ Step 8: 开放题 ═══════════ -->
+    <div class="card" v-if="step === 8">
+      <div class="step-head"><h3>Your Views</h3><span class="tag">1 question</span></div>
+      <div class="qblock" :class="{invalid: stepTouched && !ans.openText.trim()}">
+        <p class="qtitle req"><span class="num">14.</span>In your own words, what is the most important factor your company considers when choosing a supplier for control and/or butterfly valves?</p>
+        <textarea name="q12" v-model="ans.openText" placeholder="Please type your answer…"></textarea>
+        <p class="err-hint">Please enter a response.</p>
+      </div>
+      <div class="nav-row">
+        <button type="button" class="btn" @click="prev">‹ Back</button>
+        <button type="button" class="btn primary" @click="next(8)">Next ›</button>
+      </div>
+    </div>
+
+    <!-- ═══════════ Step 9: 排序 + 滑杆 + 提交 ═══════════ -->
+    <div class="card" v-if="step === 9">
+      <div class="step-head"><h3>Ranking &amp; Rating</h3><span class="tag">2 questions</span></div>
+
+      <div class="qblock">
+        <p class="qtitle req"><span class="num">15.</span>Please rank the following factors in order of importance when selecting a control valve supplier (1 = most important). Drag each row to reorder.</p>
+        <ul class="rank-list" ref="rankList" @mousemove="onRankMove">
+          <li class="rank-item" :class="rankItemCls(factor)"
+              v-for="(factor, i) in rank" :key="factor" :data-factor="factor"
+              @mousedown.prevent="onRankDown($event, i)">
+            <span class="rank-grip">⋮⋮</span>
+            <span class="rank-badge">{{ i + 1 }}</span>
+            <span class="txt">{{ factor }}</span>
+          </li>
+        </ul>
+        <p class="rank-hint">Drag the rows into your preferred order.</p>
+      </div>
+
+      <div class="qblock">
+        <p class="qtitle req"><span class="num">16.</span>How important is reliable after-sales support and spare parts availability when choosing a butterfly valve supplier? (0 = not important, 100 = extremely important)</p>
+        <div class="slider-wrap">
+          <div class="slider-row">
+            <input ref="impSlider" class="sv" type="range" min="0" max="100" step="1" name="q14"
+                   v-model.number="ans.importance" @input="onImpInput" @change="onImpInput" />
+            <span class="slider-val">{{ ans.importance }}</span>
+          </div>
+          <div class="slider-labels"><span>0 — Not important</span><span>100 — Extremely important</span></div>
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <button type="button" class="btn" @click="prev">‹ Back</button>
+        <button type="button" class="btn primary" @click="submit">Submit</button>
+      </div>
+    </div>
+
+    <footer class="note">ValveSpec Study · mock questionnaire for browser automation testing · 参考 result.json 题目改写</footer>
+  </main>
+</div>
+
+<script src="https://unpkg.com/vue@3.4.38/dist/vue.global.prod.js"></script>
+<script>
+  if (!window.Vue) {
+    document.write('<script src="https://cdn.jsdelivr.net/npm/vue@3.4.38/dist/vue.global.prod.js"><\/script>')
+  }
+</script>
+<script>
+/* 中文注释优先：参考 repo 根 result.json（蝶阀 B2B 调研）重建的 Vue 测试问卷页 —— 分步问卷 */
+const { createApp } = Vue
+
+createApp({
+  data() {
+    return {
+      submitted: false,
+      step: 1,             // 当前第几步（1..9）
+      stepCount: 9,
+      stepTouched: false,  // 本步是否点过 Next/Submit（用于显示标红）
+      // 拖拽状态（mouse 事件实现，兼容 CDP 合成鼠标拖拽）
+      dragIdx: -1,   // 被拖项的当前数组下标
+      dragOver: -1,  // 视觉高亮：光标悬停的行下标（原顺序）
+      dragTail: false, // 光标已越过最后一行（拖到末尾追加）
+      lastMove: 0,   // 最后一次 mousemove 时间戳（静默落位用）
+      watchTimer: null,
+      ageOptions: ['Under 18','18-24','25-34','35-44','45-54','55-64','65+'],
+      countryOptions: ['United States','Canada','United Kingdom','Germany','France','Australia','Japan','China','India','Brazil','Mexico','Other'],
+      industryOptions: ['Chemical','Food & Beverage','Metals and Mining','Midstream','OEM','Power','Refining','Upstream','Water and Wastewater','Other'],
+      deptOptions: ['Engineering','Maintenance','Operations/Production','Facilities/Plant Management','Electrical/Electrician/Instrumentation','Procurement/Purchasing','Marketing','Sales','Finance','Research and Development','Other'],
+      productOptions: ['Cementing equipment','Compressors','Control valves and actuators','Flow meters','Heat exchangers','On/Off valves and actuators','Pipeline freeze protection','Pumps','Regulators','None of the above'],
+      roleOptions: [
+        'I am the primary decision maker',
+        'I share the decision-making authority with someone else',
+        'I participate by giving input/feedback but have no decision-making authority',
+        'I do not participate in specifying and/or purchasing control valve and/or actuators used at my company'
+      ],
+      valveOptions: ['Linear Valves (e.g., globe valves)','Ball Valves','Butterfly Valves','Eccentric Plug Valves','Centrifugal Valves','Other (please specify):'],
+      allocRows: ['Class IV','Class V','Class VI','Unknown'],
+      alloc: { 'Class IV':'','Class V':'','Class VI':'','Unknown':'' },
+      appRows: ['General Service Isolation','General Service Modulating Control','Severe Service','Emergency Shutdown (ESD)'],
+      techColumns: ['Rubber Seated (Concentric)','High Performance (Double Offset)','Triple Offset','Lined / Chemical Service','None of the above'],
+      matrix: ['','','',''],
+      brandRows: ['Best Value','Best Control Performance','Best severe-service capability','Most trusted brand'],
+      brandColumns: ['Bray','Crane','Fisher','Flowserve','Keystone','Neles','Samson','Other'],
+      brand: ['','','',''],
+      conjointOptions: [
+        'Option 1: Samson / (Digital Positioner) / Standard Control (±1–2%) / 100,000 cycles / $7,000',
+        'Option 2: Crane / (Digital Positioner + Diagnostics) / High Performance Control (≤1%) / 60,000 cycles / $14,500',
+        'Option 3: Keystone / (I/P or Discrete) / Rough Control (±3–5%) / 20,000 cycles / $12,000',
+        'Option 4: Neles / (Digital Positioner) / Standard Control (±1–2%) / 100,000 cycles / $12,000',
+        'Option 5: NONE: I wouldn\'t choose any of these.'
+      ],
+      rank: ['Price','Technical support & engineering expertise','Brand reputation / trust','Delivery lead time','Total cost of ownership (TCO)','After-sales service & spare parts'],
+      ans: { age:'', country:'', favThree:'', coffee:'', industry:'', dept:'', products:[], role:'', valves:[], conjoint:'', openText:'', importance:50 }
+    }
+  },
+  computed: {
+    allocTotal() { return this.allocRows.reduce((s, k) => s + (parseInt(this.alloc[k], 10) || 0), 0) },
+    matrixFull() { return this.matrix.every(Boolean) },
+    brandFull() { return this.brand.every(Boolean) },
+    answeredCount() {
+      let n = 0
+      if (this.ans.age) n++
+      if (this.ans.country) n++
+      if (this.ans.favThree.trim()) n++
+      if (this.ans.coffee.trim()) n++
+      if (this.ans.industry) n++
+      if (this.ans.dept) n++
+      if (this.ans.products.length) n++
+      if (this.ans.role) n++
+      if (this.ans.valves.length) n++
+      if (this.allocTotal === 100) n++
+      if (this.matrixFull) n++
+      if (this.brandFull) n++
+      if (this.ans.conjoint) n++
+      if (this.ans.openText.trim()) n++
+      return n
+    },
+    progressPct() { return Math.round(this.answeredCount / 14 * 100) }
+  },
+  watch: {
+    'ans.importance'(v) { this.updateSliderFill(v) },
+    step() { this.stepTouched = false }
+  },
+  mounted() {
+    this.$nextTick(() => this.updateSliderFill(this.ans.importance))
+  },
+  methods: {
+    normNum(v) { return v.replace(/[^\d]/g, '') },
+    toggleProduct(o) {
+      const set = new Set(this.ans.products)
+      if (o === 'None of the above') { this.ans.products = set.has(o) ? [] : ['None of the above']; return }
+      set.delete('None of the above')
+      set.has(o) ? set.delete(o) : set.add(o)
+      this.ans.products = Array.from(set)
+    },
+    toggleValve(o) {
+      const set = new Set(this.ans.valves)
+      set.has(o) ? set.delete(o) : set.add(o)
+      this.ans.valves = Array.from(set)
+    },
+    // ── 分步导航：每步校验通过才放行 ──
+    stepValid(s) {
+      switch (s) {
+        case 1: return !!(this.ans.age && this.ans.country && this.ans.favThree.trim() && this.ans.coffee.trim())
+        case 2: return !!(this.ans.industry && this.ans.dept)
+        case 3: return !!(this.ans.products.length && this.ans.role)
+        case 4: return !!(this.ans.valves.length && this.allocTotal === 100)
+        case 5: return this.matrixFull
+        case 6: return this.brandFull
+        case 7: return !!this.ans.conjoint
+        case 8: return !!this.ans.openText.trim()
+        case 9: return true
+        default: return true
+      }
+    },
+    next(s) {
+      this.stepTouched = true
+      if (!this.stepValid(s)) return
+      this.step += 1
+      window.scrollTo({ top: 0 })
+    },
+    prev() { this.step = Math.max(1, this.step - 1); window.scrollTo({ top: 0 }) },
+    // ── Q13 拖拽排序：整行可拖（mouse 事件，兼容 CDP 合成拖拽）──
+    // 注：MCP 拖拽有时 mouse_up 丢失（浏览器按键状态残留），因此额外用 pointerup + 静默定时兜底落位。
+    rankItemCls(factor) {
+      const i = this.rank.indexOf(factor)
+      return { dragging: i === this.dragIdx, 'drop-target': i === this.dragOver }
+    },
+    onRankDown(e, i) {
+      if (e.button !== undefined && e.button !== 0) return
+      this.dragIdx = i
+      this.dragOver = -1
+      this.dragTail = false
+      this.lastMove = Date.now()
+      document.addEventListener('mousemove', this.onDocMove)
+      document.addEventListener('mouseup', this.onDocUp)
+      document.addEventListener('pointerup', this.onDocUp)
+      document.addEventListener('mouseleave', this.onDocUp)
+      this.watchTimer = setInterval(() => {
+        // 静默兜底：按住后长时间无移动（MCP mouse_up 丢失场景）→ 按最后位置落位
+        if (this.dragIdx >= 0 && Date.now() - this.lastMove > 450) this.commitDrop()
+      }, 120)
+    },
+    onRankMove(e) {
+      if (this.dragIdx < 0) return
+      this.lastMove = Date.now()
+      // 找光标所在目标行：第一个(非被拖行)中线低于光标的行 → 插到它前面；否则追加到末尾
+      const list = this.$refs.rankList
+      if (!list) return
+      const items = Array.from(list.querySelectorAll('.rank-item'))
+      let over = -1
+      let tail = true
+      for (let k = 0; k < items.length; k++) {
+        if (k === this.dragIdx) continue
+        const r = items[k].getBoundingClientRect()
+        if (e.clientY < r.top + r.height / 2) { over = k; tail = false; break }
+      }
+      this.dragOver = over
+      this.dragTail = tail
+    },
+    onDocMove(e) {
+      if (this.dragIdx < 0) return
+      this.onRankMove(e)
+    },
+    onDocUp() {
+      this.commitDrop()
+    },
+    commitDrop() {
+      document.removeEventListener('mousemove', this.onDocMove)
+      document.removeEventListener('mouseup', this.onDocUp)
+      document.removeEventListener('pointerup', this.onDocUp)
+      document.removeEventListener('mouseleave', this.onDocUp)
+      if (this.watchTimer) { clearInterval(this.watchTimer); this.watchTimer = null }
+      const from = this.dragIdx
+      this.dragIdx = -1
+      if (from < 0) return
+      const over = this.dragOver
+      const tail = this.dragTail
+      this.dragOver = -1
+      this.dragTail = false
+      // 计算插入到「去掉被拖项后的数组」的下标
+      let slot = -1
+      if (tail) slot = this.rank.length - 1
+      else if (over >= 0) slot = over > from ? over - 1 : over
+      if (slot < 0 || slot === from) return
+      const arr = this.rank.slice()
+      const [moved] = arr.splice(from, 1)
+      arr.splice(slot, 0, moved)
+      this.rank = arr
+    },
+    // ── Q14 滑杆：CSS 变量进度填充 + 避免闪烁 ──
+    onImpInput() {
+      this.updateSliderFill(this.ans.importance)
+    },
+    updateSliderFill(v) {
+      const el = this.$refs.impSlider
+      if (el) el.style.setProperty('--fill', v + '%')
+    },
+    submit() {
+      if (!this.stepValid(9)) return
+      console.log('[survey-test] submit answers:', JSON.stringify({
+        age: this.ans.age, country: this.ans.country, favThree: this.ans.favThree, coffee: this.ans.coffee, industry: this.ans.industry, dept: this.ans.dept,
+        products: this.ans.products, role: this.ans.role, valves: this.ans.valves,
+        allocation: this.alloc, applicationTech: this.matrix, brand: this.brand,
+        conjoint: this.ans.conjoint, openText: this.ans.openText,
+        ranking: this.rank, importance: this.ans.importance
+      }, null, 2))
+      this.submitted = true
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+}).mount('#app')
+</script>
+<script>
+/* 测试用：把题干（.qtitle）+ 副标题（.qsub）渲染成 <img src="data:image/png;base64,...">，
+   让 AI 只能靠 OCR / 视觉读题。
+   - canvas 仅用于离屏生成 base64，不进入 DOM；
+   - alt 留空，防止绕开 OCR；
+   - Vue 切步骤会重建 DOM，用 MutationObserver 持续补齐。
+   - 需要连选项也变图片时，地址栏加 ?imgopt=1 */
+(function () {
+  var TEXT_SELECTORS = ['.qtitle', '.qsub']
+  var ALSO_OPTIONS = /[?&]imgopt=1/.test(location.search)
+  if (ALSO_OPTIONS) TEXT_SELECTORS.push('.opt .txt')
+  var FONT_STACK = '-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",Arial,sans-serif'
+
+  /* 纯文本 → PNG dataURL（离屏 canvas 绘制，返回 base64） */
+  function textToPngDataUrl(text, opts) {
+    var o = Object.assign({ width: 760, fontSize: 17, lineHeight: 27, padding: 14, weight: 600, color: '#1f2937' }, opts || {})
+    var canvas = document.createElement('canvas')
+    var ctx = canvas.getContext('2d')
+    var font = o.weight + ' ' + o.fontSize + 'px ' + FONT_STACK
+    ctx.font = font
+    var lines = []
+    String(text).split('\n').forEach(function (para) {
+      var line = ''
+      for (var i = 0; i < para.length; i++) {
+        var ch = para[i]
+        if (line && ctx.measureText(line + ch).width > o.width - o.padding * 2) {
+          lines.push(line)
+          line = ch
+        } else {
+          line += ch
+        }
+      }
+      lines.push(line)
+    })
+    var dpr = 2
+    canvas.width = o.width * dpr
+    canvas.height = (lines.length * o.lineHeight + o.padding * 2) * dpr
+    ctx.scale(dpr, dpr)
+    ctx.font = font
+    ctx.fillStyle = o.color
+    ctx.textBaseline = 'top'
+    lines.forEach(function (l, idx) { ctx.fillText(l, o.padding, o.padding + idx * o.lineHeight) })
+    return canvas.toDataURL('image/png')
+  }
+
+  /* 元素内容替换为 <img src="base64"> */
+  function replaceWithImg(el, opts) {
+    if (!el || el.dataset.ocrImg === '1') return
+    var text = (el.textContent || '').replace(/\s+/g, ' ').trim()
+    if (!text) return
+    var img = document.createElement('img')
+    img.src = textToPngDataUrl(text, opts)
+    img.alt = ''
+    img.style.maxWidth = '100%'
+    img.style.display = 'block'
+    el.dataset.ocrImg = '1'
+    el.textContent = ''
+    el.appendChild(img)
+  }
+
+  var pending = false
+  function apply() {
+    if (pending) return
+    pending = true
+    requestAnimationFrame(function () {
+      pending = false
+      TEXT_SELECTORS.forEach(function (sel) {
+        document.querySelectorAll(sel).forEach(function (el) { replaceWithImg(el) })
+      })
+    })
+  }
+
+  apply()
+  new MutationObserver(apply).observe(document.body, { childList: true, subtree: true })
+})()
+</script>
+</body>
+</html>

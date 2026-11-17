@@ -1,0 +1,52 @@
+{
+  "age": 29,
+  "gender": "Male",
+  "country": "China",
+  "industry": "Chemical",
+  "department": "Engineering",
+  "products": [
+    "Control valves and actuators",
+    "Pumps",
+    "Flow meters"
+  ],
+  "role": "I share the decision-making authority with someone else",
+  "valves": [
+    "Linear Valves (e.g., globe valves)",
+    "Ball Valves",
+    "Butterfly Valves"
+  ],
+  "answers": {
+    "Q10_1": 40,
+    "Q10_2": 30,
+    "Q10_3": 20,
+    "Q10_4": 10,
+    "Q13": "Option 4: Neles / (Digital Positioner) / Standard Control (±1–2%) / 100,000 cycles / $12,000"
+  },
+  "matrix_answers": {
+    "Q11": {
+      "General Service Isolation": "Rubber Seated (Concentric)",
+      "General Service Modulating Control": "High Performance (Double Offset)",
+      "Severe Service": "Triple Offset",
+      "Emergency Shutdown (ESD)": "High Performance (Double Offset)"
+    },
+    "Q12": {
+      "Best Value": "Bray",
+      "Best Control Performance": "Fisher",
+      "Best severe-service capability": "Neles",
+      "Most trusted brand": "Fisher"
+    }
+  },
+  "ranking": {
+    "Q15": [
+      "Price",
+      "Technical support & engineering expertise",
+      "Brand reputation / trust",
+      "Delivery lead time",
+      "Total cost of ownership (TCO)",
+      "After-sales service & spare parts"
+    ]
+  },
+  "ratings": {
+    "Q16": 85
+  }
+}
